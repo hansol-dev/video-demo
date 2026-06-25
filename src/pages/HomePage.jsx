@@ -3,25 +3,29 @@ import NavBar from "../components/NavBar.jsx";
 
 const clips = [
   {
-    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    poster: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=80&w=900",
     tags: ["MOTION_BLUR"],
     label: "#CINEMATIC",
     title: "Wet Asphalt High-Speed",
   },
   {
-    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+    src: "https://media.w3.org/2010/05/sintel/trailer.mp4",
+    poster: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&q=80&w=900",
     tags: ["PARTICLES"],
     label: "#ABSTRACT_VFX",
     title: "Cosmic Light Diffusion",
   },
   {
-    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+    src: "https://media.w3.org/2010/05/bunny/trailer.mp4",
+    poster: "https://images.unsplash.com/photo-1539109132314-3477524c8d95?auto=format&fit=crop&q=80&w=900",
     tags: ["4K", "NEON_FX"],
     label: "#FASHION_STORY",
     title: "Rainy Neon Catwalk",
   },
   {
-    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+    src: "https://www.w3schools.com/html/mov_bbb.mp4",
+    poster: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=900",
     tags: ["MACRO"],
     label: "#AD_COMMERCIAL",
     title: "Chrome Product Rotation",
@@ -118,7 +122,7 @@ export default function HomePage({ onGenerate }) {
           <div className="card-stack">
             {clips.map((clip) => (
               <article className="video-card" key={clip.src}>
-                <video autoPlay loop muted playsInline disablePictureInPicture preload="metadata" src={clip.src} />
+                <video autoPlay loop muted playsInline disablePictureInPicture preload="metadata" poster={clip.poster} src={clip.src} />
                 <div className="metadata-bits">
                   {clip.tags.map((tag) => (
                     <div className="bit" key={tag}>
