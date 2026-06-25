@@ -3,25 +3,25 @@ import NavBar from "../components/NavBar.jsx";
 
 const clips = [
   {
-    src: "https://cdn.higgsfield.ai/user_3DM3djpjYDVEDT5wTH9U4EZR2R3/hf_20260623_022755_39ed3d22-7e79-4f36-bcd9-7e10ae1f6594_min.mp4",
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     tags: ["MOTION_BLUR"],
     label: "#CINEMATIC",
     title: "Wet Asphalt High-Speed",
   },
   {
-    src: "https://cdn.higgsfield.ai/user_3EXRcSJxBjgx9yQfkND9r8Dt0Td/hf_20260622_203946_f032365c-922c-40d5-b866-3aab1b5a4d1c_min.mp4",
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
     tags: ["PARTICLES"],
     label: "#ABSTRACT_VFX",
     title: "Cosmic Light Diffusion",
   },
   {
-    src: "https://cdn.higgsfield.ai/user_3F618kxxnh0N3gYgUuqNnkKCcN5/hf_20260623_140111_fe2726bd-7e63-4fa6-87fa-98692219e0c7_min.mp4",
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
     tags: ["4K", "NEON_FX"],
     label: "#FASHION_STORY",
     title: "Rainy Neon Catwalk",
   },
   {
-    src: "https://cdn.higgsfield.ai/user_3F618kxxnh0N3gYgUuqNnkKCcN5/hf_20260623_171940_af1f119c-1420-4fdf-b74c-29f888fae29e_min.mp4",
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
     tags: ["MACRO"],
     label: "#AD_COMMERCIAL",
     title: "Chrome Product Rotation",
