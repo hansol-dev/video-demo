@@ -1,41 +1,33 @@
-# Video Demo React Frontend
+# Video Demo Frontend
 
-프롬프트 기반 영상 생성 서비스의 React 데모입니다. 실제 영상 생성은 포함하지 않고, 백엔드 또는 MCP 브릿지를 붙일 수 있는 연결 지점만 준비되어 있습니다.
+프롬프트 기반 영상 생성 서비스의 정적 프론트 데모입니다. 실제 영상 생성은 포함하지 않고, 백엔드 또는 MCP 브릿지를 붙일 수 있는 연결 지점만 준비되어 있습니다.
 
-## 구조
+## 파일 구조
 
 ```text
 video-demo/
-  index.html
-  package.json
-  mcp-integration.example.js
-  src/
-    App.jsx
-    main.jsx
-    styles.css
-    api/
-      videoGeneration.js
-    components/
-      NavBar.jsx
-    pages/
-      HomePage.jsx
-      LoadingPage.jsx
-      ResultPage.jsx
+  index.html                  # 프롬프트 입력 화면
+  loading.html                # 생성 중 로딩 화면
+  result.html                 # 생성 결과 화면
+  styles.css                  # 공통 스타일
+  app.js                      # 화면 흐름, payload 생성, 연결 함수
+  mcp-integration.example.js  # MCP/API 연결 예시
 ```
 
 ## 화면 흐름
 
 ```text
-HomePage
+index.html
+  -> 영상 생성하기 클릭
   -> createVideoGenerationPayload()
   -> requestVideoGeneration()
-  -> LoadingPage
-  -> ResultPage
+  -> loading.html
+  -> result.html
 ```
 
 ## 백엔드/MCP 연결 지점
 
-`src/api/videoGeneration.js`의 `requestVideoGeneration(payload)` 함수만 보면 됩니다.
+`app.js`의 `requestVideoGeneration(payload)` 함수만 보면 됩니다.
 
 현재 우선순위는 아래와 같습니다.
 
@@ -43,7 +35,7 @@ HomePage
 2. `window.VIDEO_GENERATE_ENDPOINT`가 있으면 `fetch()` 호출
 3. 둘 다 없으면 데모 응답 반환
 
-## 프론트가 보내는 payload 예시
+## payload 예시
 
 ```json
 {
@@ -59,7 +51,7 @@ HomePage
     "resolution": "1920x1080"
   },
   "client": {
-    "source": "video-demo-react",
+    "source": "video-demo",
     "requestedAt": "2026-06-25T00:00:00.000Z"
   }
 }
@@ -76,10 +68,3 @@ HomePage
 ```
 
 `id`, `outputUrl`, `url`로 내려와도 `normalizeVideoJob()`에서 맞춰줍니다.
-
-## 실행
-
-```bash
-npm install
-npm run dev
-```

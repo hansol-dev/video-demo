@@ -3,12 +3,96 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VIDEO AI | Video Demo</title>
+    <title>VIDEO AI | Premium Video Studio</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+  <body data-page="home">
+    <div class="glow-filter"></div>
+
+    <nav>
+      <div class="logo"><div class="logo-mark"></div>VIDEO.AI</div>
+      <div class="nav-links">
+        <a class="active">Create</a>
+        <a>Presets</a>
+        <a>Models</a>
+        <a>Studio MCP</a>
+        <a style="color: var(--magenta);">Upgrade</a>
+      </div>
+      <div class="nav-links"><a>Sign In</a></div>
+    </nav>
+
+    <main class="hero">
+      <section class="console-area">
+        <div class="system-tag">SYSTEM CORE V.4.02 // NEURAL ENGINE</div>
+        <h1>문장 하나로,<br />장면이 움직입니다.</h1>
+        <p class="subcopy">
+          프롬프트를 입력하면 AI가 카메라 무빙, 조명, 분위기까지 담아<br />
+          숏폼·광고·제품 영상을 즉각적으로 생성합니다.
+        </p>
+
+        <form class="prompt-container" id="promptForm">
+          <div class="prompt-header">
+            <span>GEN_PROMPT_INPUT</span>
+            <span id="tokenCount">TOKENS: 0/1000</span>
+          </div>
+          <textarea id="promptInput" placeholder="예: 비 오는 도심, 네온 조명 아래 모델이 천천히 걸어오는 시네마틱 패션 영상"></textarea>
+          <div class="prompt-footer">
+            <div class="controls">
+              <button class="chip" type="button" data-aspect="16:9">16:9 Cinema</button>
+              <button class="chip" type="button" data-fps="60">60 FPS</button>
+              <button class="chip" type="button" data-quality="high">High Detail</button>
+              <button class="chip" type="button" data-prompt="네온 조명, 반사되는 젖은 바닥, 시네마틱 카메라 무빙">Presets+</button>
+            </div>
+            <button class="generate-btn" type="submit">
+              영상 생성하기
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            </button>
+          </div>
+        </form>
+
+        <div class="activity-row">
+          <span>최근 생성: Cinematic Cyberpunk Street (0.4s ago)</span>
+          <span style="color: var(--amber);">● System Stable</span>
+        </div>
+      </section>
+
+      <section class="gallery-area">
+        <svg class="decor-star star-1" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"></path>
+        </svg>
+        <div class="card-stack">
+          <article class="video-card">
+            <video autoplay loop muted playsinline disablepictureinpicture preload="metadata" poster="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=80&w=900" src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"></video>
+            <div class="metadata-bits"><div class="bit">MOTION_BLUR</div></div>
+            <div class="card-overlay"><span class="card-label">#CINEMATIC</span><span class="card-title">Wet Asphalt High-Speed</span></div>
+          </article>
+          <article class="video-card">
+            <video autoplay loop muted playsinline disablepictureinpicture preload="metadata" poster="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&q=80&w=900" src="https://media.w3.org/2010/05/sintel/trailer.mp4"></video>
+            <div class="metadata-bits"><div class="bit">PARTICLES</div></div>
+            <div class="card-overlay"><span class="card-label">#ABSTRACT_VFX</span><span class="card-title">Cosmic Light Diffusion</span></div>
+          </article>
+          <article class="video-card">
+            <video autoplay loop muted playsinline disablepictureinpicture preload="metadata" poster="https://images.unsplash.com/photo-1539109132314-3477524c8d95?auto=format&fit=crop&q=80&w=900" src="https://media.w3.org/2010/05/bunny/trailer.mp4"></video>
+            <div class="metadata-bits"><div class="bit">4K</div><div class="bit">NEON_FX</div></div>
+            <div class="card-overlay"><span class="card-label">#FASHION_STORY</span><span class="card-title">Rainy Neon Catwalk</span></div>
+          </article>
+          <article class="video-card">
+            <video autoplay loop muted playsinline disablepictureinpicture preload="metadata" poster="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=900" src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
+            <div class="metadata-bits"><div class="bit">MACRO</div></div>
+            <div class="card-overlay"><span class="card-label">#AD_COMMERCIAL</span><span class="card-title">Chrome Product Rotation</span></div>
+          </article>
+        </div>
+        <svg class="decor-star star-2" viewBox="0 0 24 24" fill="currentColor" style="opacity: 0.3;" aria-hidden="true">
+          <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"></path>
+        </svg>
+      </section>
+    </main>
+
+    <div class="mcp-indicator"><div class="status-dot"></div><span>SERVER_NODE: SEOUL_01 // LATENCY: 24MS // ACTIVE_USERS: 12,402</span></div>
+    <script src="./app.js"></script>
   </body>
 </html>
