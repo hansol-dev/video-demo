@@ -1,8 +1,15 @@
 # VIDEO.AI Demo
 
-프롬프트를 입력하면 영상을 생성하는 서비스처럼 보이도록 만든 Next.js 데모입니다.
+프롬프트 기반 영상 생성 서비스 데모입니다. Next.js로 구성되어 있습니다.
 
-지금은 실제 MCP 서버와 연결되어 있지 않습니다. 대신 프론트 화면, 로딩 화면, 결과 화면, 그리고 MCP 연결을 넣을 수 있는 API 자리를 만들어둔 상태입니다.
+현재는 실제 MCP 또는 Agent와 연결되어 있지 않고, 데모 응답과 공개 샘플 영상을 사용합니다. 실제 MCP 연동은 API 라우트 영역에 추가하면 됩니다.
+
+## 기술 스택
+
+- Next.js 16
+- React 19
+- Vanilla CSS
+- App Router
 
 ## 실행 방법
 
@@ -17,94 +24,68 @@ npm run dev
 http://localhost:3000
 ```
 
-## 전체 흐름
+프로덕션 빌드 확인:
+
+```bash
+npm run build
+npm start
+```
+
+## 화면 라우트
 
 ```text
-1. 사용자가 메인 화면에서 프롬프트 입력
-2. 프론트가 /api/generate 로 요청 전송
-3. /api/generate 가 영상 생성 job 정보를 반환
-4. 화면이 /loading 으로 이동
-5. 로딩 UI가 진행률을 보여준 뒤 /result 로 이동
-6. /result 에서 생성된 영상과 관련 정보를 표시
+/          프롬프트 입력 및 갤러리 화면
+/loading   영상 생성 중 로딩 화면
+/result    영상 생성 결과 화면
 ```
 
-## 파일 구조
+## API 라우트
 
 ```text
-video-demo/
-  app/
-    page.js                    # 메인 화면: 프롬프트 입력, 영상 생성 버튼
-    loading/page.js            # 로딩 화면: 생성 중 상태 표시
-    result/page.js             # 결과 화면: 채팅, 영상, 관련 정보 표시
-    components/Navigation.js   # 상단 로고/메뉴와 장식 아이콘
-    api/generate/route.js      # 영상 생성 요청을 받는 API 자리
-    api/status/[jobId]/route.js # 생성 상태 조회 API 자리
-    api/result/[jobId]/route.js # 생성 결과 조회 API 자리
-    globals.css                # 전체 화면 스타일
-    layout.js                  # 공통 HTML 구조, 폰트 로드
-  lib/
-    video-contract.js          # 요청/응답 데이터 구조와 데모 영상 URL
-  package.json
-  next.config.mjs
+POST /api/generate
+GET  /api/status/:jobId
+GET  /api/result/:jobId
 ```
 
-## 프론트에서 하는 일
-
-`app/page.js`가 사용자가 입력한 프롬프트를 받아서 payload를 만듭니다.
-
-```js
-const payload = createVideoGenerationPayload(finalPrompt, options);
-```
-
-그 다음 이 payload를 Next.js API로 보냅니다.
-
-```js
-fetch("/api/generate", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(payload),
-});
-```
-
-프론트 입장에서는 MCP를 직접 알 필요가 없습니다. 프론트는 `/api/generate`로 요청을 보내고, 응답으로 받은 `jobId`, `status`, `videoUrl`을 화면에 보여주면 됩니다.
-
-## MCP 연결을 넣을 위치
-
-실제 MCP 연결 코드는 `app/api/generate/route.js`에 넣으면 됩니다.
-
-현재 코드는 데모 응답을 반환합니다.
-
-```js
-const demoJob = {
-  jobId: `demo-${Date.now()}`,
-  status: "processing",
-  videoUrl: DEMO_VIDEOS.result,
-};
-```
-
-나중에는 이 부분을 아래처럼 바꾸면 됩니다.
+관련 파일:
 
 ```text
-1. MCP client 생성
-2. generate_video 같은 tool 호출
-3. MCP 서버에서 받은 jobId/status/videoUrl 반환
+app/api/generate/route.js
+app/api/status/[jobId]/route.js
+app/api/result/[jobId]/route.js
 ```
 
-예상 구조:
+## 프로젝트 구조
 
 ```text
-브라우저 화면
-  ↓
-/api/generate
-  ↓
-Node.js 서버 코드
-  ↓
-MCP 서버 또는 Agent API
-  ↓
-영상 생성 job/result
+app/
+  page.js                    # 메인 프롬프트 화면
+  loading/page.js            # 로딩/진행률 화면
+  result/page.js             # 결과 화면
+  components/Navigation.js   # 공통 네비게이션
+  api/
+    generate/route.js        # 영상 생성 요청 API
+    status/[jobId]/route.js  # 작업 상태 조회 API
+    result/[jobId]/route.js  # 작업 결과 조회 API
+  globals.css                # 전역 스타일
+  layout.js                  # 루트 레이아웃
+
+lib/
+  video-contract.js          # payload/job 공통 헬퍼
 ```
 
-## 요청 payload 예시
+## 프론트 동작 흐름
+
+1. 사용자가 `/` 화면에서 프롬프트를 입력합니다.
+2. `app/page.js`에서 `createVideoGenerationPayload()`로 요청 payload를 만듭니다.
+3. 프론트에서 `POST /api/generate`를 호출합니다.
+4. API는 정규화된 job 객체를 반환합니다.
+5. 프론트는 job 정보를 `sessionStorage`에 저장합니다.
+6. `/loading` 화면으로 이동합니다.
+7. 데모 진행률이 완료되면 `/result` 화면으로 이동합니다.
+8. `/result`에서 프롬프트, job id, 결과 영상 URL을 표시합니다.
+
+## 요청 Payload 예시
 
 ```json
 {
@@ -126,9 +107,7 @@ MCP 서버 또는 Agent API
 }
 ```
 
-## 응답 형식
-
-프론트는 아래 형식이면 바로 처리할 수 있습니다.
+## 기대 응답 형식
 
 ```json
 {
@@ -139,15 +118,45 @@ MCP 서버 또는 Agent API
 }
 ```
 
-응답 키가 `id`, `outputUrl`, `url`처럼 달라도 `lib/video-contract.js`의 `normalizeVideoJob()`에서 기본적으로 맞춰줍니다.
+프론트는 `id`, `outputUrl`, `url` 형태의 응답도 받을 수 있습니다. 해당 값들은 `lib/video-contract.js`의 `normalizeVideoJob()`에서 `jobId`, `videoUrl` 형식으로 정리됩니다.
 
-## 백엔드 개발자가 확인할 부분
+## MCP 연동 위치
 
-- 실제 MCP 서버 주소
-- MCP 연결 방식: stdio, SSE, HTTP 중 무엇인지
-- 인증키 또는 토큰 관리 방식
-- 영상 생성 요청 tool 이름
-- 생성 상태를 조회하는 방식
-- 최종 영상 URL을 받는 방식
+실제 MCP 또는 Agent 호출 코드는 아래 파일에 추가하면 됩니다.
 
-이 값들이 정해지면 `app/api/generate/route.js`, `app/api/status/[jobId]/route.js`, `app/api/result/[jobId]/route.js`에 실제 연결 코드를 넣으면 됩니다.
+```text
+app/api/generate/route.js
+```
+
+현재 데모 코드는 아래처럼 샘플 job을 반환합니다.
+
+```js
+const demoJob = {
+  jobId: `demo-${Date.now()}`,
+  status: "processing",
+  videoUrl: DEMO_VIDEOS.result,
+  receivedPrompt: payload.prompt,
+};
+```
+
+실제 연동 시에는 이 블록을 MCP 요청 코드로 교체하면 됩니다.
+
+연동에 필요한 기본 정보:
+
+- MCP 서버 또는 Agent API 주소
+- 연결 방식: HTTP, SSE, stdio 등
+- 인증 방식
+- 영상 생성 tool 또는 endpoint 이름
+- 요청/응답 스키마
+
+영상 생성이 비동기 job 방식이면 아래 정보도 필요합니다.
+
+- 상태 조회 방식
+- 결과 조회 방식
+- 최종 영상 URL 반환 형식
+
+## 참고 사항
+
+- 현재 앱은 실제 영상 생성 서비스가 아니라 데모 셸입니다.
+- API key, MCP token 같은 민감 정보는 서버 영역에만 둬야 합니다.
+- Client Component 안에 인증키를 직접 넣으면 안 됩니다.
