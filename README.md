@@ -1,42 +1,105 @@
 # VIDEO.AI Demo
 
-프롬프트 기반 영상 생성 서비스 데모입니다. Next.js로 구성되어 있습니다.
+프롬프트 기반 영상 생성 데모입니다. Next.js 프론트, Next.js API route, 로컬 MCP 서버가 함께 들어 있습니다.
 
-현재는 실제 MCP 또는 Agent와 연결되어 있지 않고, 데모 응답과 공개 샘플 영상을 사용합니다. 실제 MCP 연동은 API 라우트 영역에 추가하면 됩니다.
+현재는 실제 영상 생성 모델이 연결된 상태가 아닙니다. MCP 서버와 API 흐름은 실제처럼 구성되어 있고, 영상 결과는 mock 샘플 mp4 URL을 반환합니다. `OPENAI_API_KEY`를 넣으면 GPT는 실제 영상을 만드는 것이 아니라 프롬프트를 분석해 영상 기획 정보를 만드는 용도로만 사용됩니다.
+
+## 현재 상태
+
+```text
+완료:
+- 프론트 화면
+- Next.js API route
+- MCP client
+- 로컬 MCP 서버
+- generate/status/result tool
+- status/result API 호출 flow
+- mock video result
+
+미완료:
+- 실제 영상 생성 모델/API 연결
+- 실제 mp4 생성
+- 생성 영상 저장소 연동
+```
 
 ## 기술 스택
 
-- Next.js 16
-- React 19
-- Vanilla CSS
-- App Router
+```text
+Next.js 16
+React 19
+Node.js
+@modelcontextprotocol/sdk
+OpenAI SDK
+Zod
+Vanilla CSS
+```
 
-## 실행 방법
+## 설치
 
 ```bash
 npm install
+```
+
+## 환경 변수
+
+로컬 MCP 서버를 사용할 때 프로젝트 루트에 `.env.local`이 필요합니다.
+
+```text
+MCP_SERVER_URL=http://127.0.0.1:8787/mcp
+MCP_TRANSPORT=streamable-http
+MCP_GENERATE_TOOL=generate_video
+MCP_STATUS_TOOL=get_video_status
+MCP_RESULT_TOOL=get_video_result
+MCP_REQUEST_TIMEOUT_MS=60000
+```
+
+GPT 프롬프트 기획 기능을 사용하려면 MCP 서버를 실행하는 터미널에 아래 값도 설정합니다.
+
+```text
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_MODEL=gpt-5.5
+```
+
+`OPENAI_API_KEY`가 없으면 MCP 서버는 mock 모드로 동작합니다.
+
+## 실행 방법
+
+터미널 1: MCP 서버 실행
+
+```bash
+npm run mcp:video
+```
+
+MCP 서버 확인:
+
+```text
+http://127.0.0.1:8787/health
+```
+
+터미널 2: 프론트 서버 실행
+
+```bash
 npm run dev
 ```
 
-브라우저에서 아래 주소로 접속합니다.
+프론트 확인:
 
 ```text
 http://localhost:3000
 ```
 
-프로덕션 빌드 확인:
+Next.js에서 MCP tool 목록 확인:
 
-```bash
-npm run build
-npm start
+```text
+http://localhost:3000/api/mcp/tools
 ```
 
 ## 화면 라우트
 
 ```text
-/          프롬프트 입력 및 갤러리 화면
-/loading   영상 생성 중 로딩 화면
-/result    영상 생성 결과 화면
+/          프롬프트 입력 화면
+/loading   status API를 polling하는 로딩 화면
+/result    result API에서 videoUrl을 확인하는 결과 화면
 ```
 
 ## API 라우트
@@ -45,6 +108,7 @@ npm start
 POST /api/generate
 GET  /api/status/:jobId
 GET  /api/result/:jobId
+GET  /api/mcp/tools
 ```
 
 관련 파일:
@@ -53,44 +117,59 @@ GET  /api/result/:jobId
 app/api/generate/route.js
 app/api/status/[jobId]/route.js
 app/api/result/[jobId]/route.js
+app/api/mcp/tools/route.js
 ```
 
-## 프로젝트 구조
+## MCP 서버
+
+로컬 MCP 서버 파일:
 
 ```text
-app/
-  page.js                    # 메인 프롬프트 화면
-  loading/page.js            # 로딩/진행률 화면
-  result/page.js             # 결과 화면
-  components/Navigation.js   # 공통 네비게이션
-  api/
-    generate/route.js        # 영상 생성 요청 API
-    status/[jobId]/route.js  # 작업 상태 조회 API
-    result/[jobId]/route.js  # 작업 결과 조회 API
-  globals.css                # 전역 스타일
-  layout.js                  # 루트 레이아웃
-
-lib/
-  video-contract.js          # payload/job 공통 헬퍼
+server/mcp-video-server.mjs
 ```
 
-## 프론트 동작 흐름
+MCP endpoint:
 
-1. 사용자가 `/` 화면에서 프롬프트를 입력합니다.
-2. `app/page.js`에서 `createVideoGenerationPayload()`로 요청 payload를 만듭니다.
-3. 프론트에서 `POST /api/generate`를 호출합니다.
-4. API는 정규화된 job 객체를 반환합니다.
-5. 프론트는 job 정보를 `sessionStorage`에 저장합니다.
-6. `/loading` 화면으로 이동합니다.
-7. 데모 진행률이 완료되면 `/result` 화면으로 이동합니다.
-8. `/result`에서 프롬프트, job id, 결과 영상 URL을 표시합니다.
+```text
+http://127.0.0.1:8787/mcp
+```
+
+등록된 MCP tool:
+
+```text
+generate_video
+get_video_status
+get_video_result
+```
+
+현재 `generate_video`는 실제 영상 생성 모델을 호출하지 않습니다. 대신 job 객체를 만들고 샘플 mp4 URL을 반환합니다.
+
+## 현재 동작 흐름
+
+```text
+1. 사용자가 / 화면에서 프롬프트를 입력합니다.
+2. 사용자가 영상 생성 버튼을 클릭합니다.
+3. HomePage.handleSubmit()이 실행됩니다.
+4. createVideoGenerationPayload()가 API payload를 만듭니다.
+5. 프론트가 POST /api/generate를 호출합니다.
+6. app/api/generate/route.js의 POST()가 실행됩니다.
+7. generateVideoWithMcp()가 MCP 서버의 generate_video tool을 호출합니다.
+8. MCP 서버의 createVideoJob()이 mock job을 생성합니다.
+9. /api/generate가 jobId, status, videoUrl을 프론트에 반환합니다.
+10. 프론트가 sessionStorage에 job을 저장하고 /loading으로 이동합니다.
+11. LoadingPage가 GET /api/status/:jobId를 호출합니다.
+12. completed 상태이면 GET /api/result/:jobId를 호출합니다.
+13. 최종 videoUrl을 저장하고 /result로 이동합니다.
+14. ResultPage가 GET /api/result/:jobId를 다시 확인합니다.
+15. video 태그가 job.videoUrl을 화면에 표시합니다.
+```
 
 ## 요청 Payload 예시
 
 ```json
 {
   "type": "video.generate",
-  "prompt": "비 오는 도심, 네온 조명 아래 모델이 천천히 걸어오는 시네마틱 패션 영상",
+  "prompt": "비 오는 네온 거리에서 모델이 천천히 걸어오는 시네마틱 패션 영상",
   "model": "neural-video-engine-v4",
   "aspect": "16:9",
   "fps": 60,
@@ -102,61 +181,58 @@ lib/
   },
   "client": {
     "source": "video-demo",
-    "requestedAt": "2026-06-26T00:00:00.000Z"
+    "requestedAt": "2026-06-29T00:00:00.000Z"
   }
 }
 ```
 
-## 기대 응답 형식
+## 응답 예시
 
 ```json
 {
-  "jobId": "job-123",
-  "status": "processing",
-  "progress": 0,
-  "videoUrl": "https://example.com/result.mp4"
+  "jobId": "video-abc123",
+  "status": "completed",
+  "progress": 100,
+  "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
 }
 ```
 
-프론트는 `id`, `outputUrl`, `url` 형태의 응답도 받을 수 있습니다. 해당 값들은 `lib/video-contract.js`의 `normalizeVideoJob()`에서 `jobId`, `videoUrl` 형식으로 정리됩니다.
+## 실제 모델 연결 시 해야 할 일
 
-## MCP 연동 위치
-
-실제 MCP 또는 Agent 호출 코드는 아래 파일에 추가하면 됩니다.
+실제 영상 생성 모델/API가 정해지면 아래 정보가 필요합니다.
 
 ```text
-app/api/generate/route.js
+모델 이름
+API endpoint
+인증 방식/API key
+generate 요청 schema
+generate 응답 schema
+status 조회 방식
+result 조회 방식
+최종 videoUrl 반환 방식
 ```
 
-현재 데모 코드는 아래처럼 샘플 job을 반환합니다.
+이 정보가 정해지면 `server/mcp-video-server.mjs`의 mock provider 부분을 실제 provider 호출로 교체하면 됩니다.
 
-```js
-const demoJob = {
-  jobId: `demo-${Date.now()}`,
-  status: "processing",
-  videoUrl: DEMO_VIDEOS.result,
-  receivedPrompt: payload.prompt,
-};
+## 참고 문서
+
+초보자용 전체 설명:
+
+```text
+EASY_EXPLANATION.md
 ```
 
-실제 연동 시에는 이 블록을 MCP 요청 코드로 교체하면 됩니다.
+MCP 연결 가이드:
 
-연동에 필요한 기본 정보:
+```text
+docs/mcp-setup.md
+```
 
-- MCP 서버 또는 Agent API 주소
-- 연결 방식: HTTP, SSE, stdio 등
-- 인증 방식
-- 영상 생성 tool 또는 endpoint 이름
-- 요청/응답 스키마
+## 주의 사항
 
-영상 생성이 비동기 job 방식이면 아래 정보도 필요합니다.
-
-- 상태 조회 방식
-- 결과 조회 방식
-- 최종 영상 URL 반환 형식
-
-## 참고 사항
-
-- 현재 앱은 실제 영상 생성 서비스가 아니라 데모 셸입니다.
-- API key, MCP token 같은 민감 정보는 서버 영역에만 둬야 합니다.
-- Client Component 안에 인증키를 직접 넣으면 안 됩니다.
+```text
+- 현재는 실제 영상 생성 서비스가 아닙니다.
+- 현재 videoUrl은 샘플 mp4입니다.
+- API key와 token은 클라이언트 컴포넌트에 넣지 말고 서버 환경변수로만 관리해야 합니다.
+- .log 파일은 실행 중 생기는 임시 파일이며 .gitignore에 의해 Git에 올라가지 않습니다.
+```

@@ -1,25 +1,65 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DEMO_VIDEOS, getCurrentVideoJob } from "../../lib/video-contract";
+import { DEMO_VIDEOS, getCurrentVideoJob, saveCurrentVideoJob } from "../../lib/video-contract";
 import { Navigation } from "../components/Navigation";
 
 export default function ResultPage() {
   const [job, setJob] = useState({
     jobId: "VX-902-B",
-    prompt: "비 오는 도심, 네온 조명 아래 모델이 천천히 걸어오는 시네마틱 패션 영상",
+    prompt: "Cinematic fashion video",
     videoUrl: DEMO_VIDEOS.result,
+    status: "completed",
   });
 
   useEffect(() => {
+    let isCancelled = false;
     const searchParams = new URLSearchParams(window.location.search);
     const saved = getCurrentVideoJob();
+    const currentJobId = searchParams.get("jobId") || saved?.job?.jobId || "VX-902-B";
+    const currentPrompt = searchParams.get("prompt") || saved?.payload?.prompt || "Cinematic fashion video";
 
-    setJob({
-      jobId: searchParams.get("jobId") || saved?.job?.jobId || "VX-902-B",
-      prompt: searchParams.get("prompt") || saved?.payload?.prompt || "비 오는 도심, 네온 조명 아래 모델이 천천히 걸어오는 시네마틱 패션 영상",
-      videoUrl: saved?.job?.videoUrl || DEMO_VIDEOS.result,
-    });
+    async function loadResult() {
+      const baseJob = {
+        jobId: currentJobId,
+        prompt: currentPrompt,
+        videoUrl: saved?.job?.videoUrl || DEMO_VIDEOS.result,
+        status: saved?.job?.status || "completed",
+      };
+
+      setJob(baseJob);
+
+      try {
+        const response = await fetch(`/api/result/${encodeURIComponent(currentJobId)}`);
+
+        if (!response.ok) {
+          throw new Error(`result HTTP ${response.status}`);
+        }
+
+        const resultJob = await response.json();
+        const nextJob = {
+          ...baseJob,
+          ...resultJob,
+          prompt: currentPrompt,
+          videoUrl: resultJob.videoUrl || baseJob.videoUrl,
+        };
+
+        if (isCancelled) return;
+
+        setJob(nextJob);
+        saveCurrentVideoJob({ payload: saved?.payload || { prompt: currentPrompt }, job: nextJob });
+      } catch {
+        if (!isCancelled) {
+          setJob(baseJob);
+        }
+      }
+    }
+
+    loadResult();
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   return (
@@ -32,28 +72,20 @@ export default function ResultPage() {
           <div className="panel-label">PROMPT_CHAT</div>
           <div className="chat-scroll">
             <div className="chat-user">
-              <div>{job.prompt}. 4K 해상도, 필름 그레인 효과 추가.</div>
-              <span>USER // 14:32:08</span>
+              <div>{job.prompt}</div>
+              <span>USER // PROMPT</span>
             </div>
             <div className="chat-ai">
-              <div>Neural engine initialized. 프롬프트를 장면 단위로 분해하고 카메라 무빙, 색보정, 조명 값을 계산했습니다.</div>
-              <span>VIDEO.AI // 14:32:12</span>
+              <div>Generation request accepted. The result page confirmed the video URL through GET /api/result/{job.jobId}.</div>
+              <span>VIDEO.AI // RESULT</span>
             </div>
             <div className="chat-ai">
-              <div>4K cinematic render complete with film grain. Duration: 6.2s. 42.5 Mbps.</div>
-              <span>VIDEO.AI // 14:32:41</span>
-            </div>
-            <div className="chat-user">
-              <div>조금 더 광고 소재로 쓰기 좋게 제품 클로즈업도 넣어줘</div>
-              <span>USER // 14:33:02</span>
-            </div>
-            <div className="chat-ai">
-              <div>추천: 현재 결과를 유지한 상태에서 제품 클로즈업 2초, 로고 엔딩 1초를 추가하면 숏폼 광고로 쓰기 좋습니다.</div>
-              <span>VIDEO.AI // 14:33:05</span>
+              <div>Current backend mode uses MCP/mock data until the real video generation provider is connected.</div>
+              <span>MCP SERVER // {job.status}</span>
             </div>
           </div>
           <form className="chat-composer">
-            <div contentEditable suppressContentEditableWarning aria-label="프롬프트 수정 입력">
+            <div contentEditable suppressContentEditableWarning aria-label="Edit prompt">
               Edit prompt and regenerate...
             </div>
             <button className="btn-primary small" type="submit">
@@ -81,18 +113,18 @@ export default function ResultPage() {
               <div className="play-progress">
                 <div className="play-progress-bar" />
               </div>
-              <span>00:04 / 00:06</span>
+              <span>MOCK MP4</span>
             </div>
           </div>
           <div className="result-video-meta">
             <div>
-              BITRATE: <span>42.5 MBPS</span>
+              STATUS: <span>{job.status}</span>
             </div>
             <div>
-              CODEC: <span>H.265 / HEVC</span>
+              SOURCE: <span>GET /api/result</span>
             </div>
             <div>
-              ENGINE: <span>NEURAL_GEN_V4</span>
+              ENGINE: <span>MCP_MOCK_PROVIDER</span>
             </div>
           </div>
         </section>
@@ -102,10 +134,10 @@ export default function ResultPage() {
           <section className="info-block">
             <div className="info-title">PARAMETERS</div>
             <div className="meta-grid">
-              <MetaItem label="RESOLUTION" value="3840 x 2160" />
-              <MetaItem label="ASPECT" value="16:9 Cinema" />
-              <MetaItem label="FPS" value="60" />
-              <MetaItem label="DURATION" value="6.2s" />
+              <MetaItem label="JOB" value={job.jobId} />
+              <MetaItem label="STATUS" value={job.status} />
+              <MetaItem label="API" value="/api/result" />
+              <MetaItem label="MODE" value="mock" />
             </div>
           </section>
           <section className="info-block">
@@ -130,12 +162,12 @@ export default function ResultPage() {
           </section>
           <section className="info-block terminal">
             <div>
-              <span className="dot" /> STORAGE_SYNC: SUCCESS
+              <span className="dot" /> RESULT_API: CALLED
             </div>
             <div>
-              <span className="dot" /> ASSET_PROTECTION: ENABLED
+              <span className="dot" /> MCP_MODE: MOCK_READY
             </div>
-            <div>SHA-256: 8f2b...e4a1</div>
+            <div>VIDEO_URL: {job.videoUrl ? "READY" : "MISSING"}</div>
           </section>
         </aside>
       </main>
